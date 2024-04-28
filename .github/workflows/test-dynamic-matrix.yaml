@@ -17,8 +17,8 @@ jobs:
   ListProjects:
     runs-on: ubuntu-latest
     outputs:
-      PROJECTS: ${{steps.set-projects.outputs.PROJEcTS}}
-      FIXO: ${{steps.set-projects.outputs.FIXO}}
+      PROJECTS: ${{steps.set-projects.outputs.PROJECTS}}
+      FIXO: ${{steps.valor-fixo.outputs.FIXO}}
     steps:
       - uses: actions/checkout@v4
       - id: set-projects
@@ -27,11 +27,15 @@ jobs:
           | sort \
           | xargs -n1 basename \
           | jq -R -s -c 'split("\n")[:-1]')"
+          echo "PROJECTS=${LIST}" >> "${GITHUB_OUTPUT}"
+          echo "${LIST}"
+      - id: valor-fixo
+        run: |
           VALOR="valor fixo"
-            echo "FIXO=${VALOR}" >> "${GITHUB_OUTPUT}"
-            echo "PROJECTS=${LIST}" >> "${GITHUB_OUTPUT}"
+          echo "FIXO=${VALOR}" >> "${GITHUB_OUTPUT}"
+          echo "${VALOR}"
       - run: |
-          echo "${{steps.set-projects.outputs.FIXO}}"
+          echo "${{steps.valor-fixo.outputs.FIXO}}"
           echo "${{steps.set-projects.outputs.PROJECTS}}"
 
   teste-A:
