@@ -14,10 +14,11 @@ defaults:
     working-directory: ./src
 
 jobs:
-  list-projects:
+  ListProjects:
     runs-on: ubuntu-latest
     outputs:
-      projects: ${{ steps.set-projects.outputs.projects }}
+      PROJECTS: ${{steps.set-projects.outputs.PROJEcTS}}
+      FIXO: ${{steps.set-projects.outputs.FIXO}}
     steps:
       - uses: actions/checkout@v4
       - id: set-projects
@@ -26,28 +27,38 @@ jobs:
           | sort \
           | xargs -n1 basename \
           | jq -R -s -c 'split("\n")[:-1]')"
-          echo "projects='${LIST}'" >> "${GITHUB_OUTPUT}"
+          {
+            echo "PROJECTS=${LIST}" 
+            echo "FIXO='valor fixo'"
+          } >> "${GITHUB_OUTPUT}"
       - run:
-          echo "${{ steps.set-projects.outputs.projects }}"
+          echo "${{steps.set-projects.outputs.FIXO}}"
+          echo "${{steps.set-projects.outputs.PROJECTS}}"
 
   teste-A:
     runs-on: ubuntu-latest
+    env:
+      PROJECTS: ${{needs.ListProjects.outputs.PROJECTS}}
+      FIXO: ${{needs.ListProjects.outputs.FIXO}}
     steps:
       - uses: actions/checkout@v4
       - run:
-          echo "${{ needs.list-projects.outputs.projects }}"
+          echo "${{ env.FIXO }}"
+          echo "${{ env.PROJECTS }}"
 
   teste-B:
     runs-on: ubuntu-latest
+    env:
+      PROJECTS: ${{needs.ListProjects.outputs.PROJECTS}}
     steps:
       - uses: actions/checkout@v4
       - run:
-          echo "${{ fromJson(needs.list-projects.outputs.projects) }}"
+          echo "${env.PROJECTS}" | jq -r '.[]'
 
   build-with-matrix:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: ${{ fromJson(needs.list-projects.outputs.projects) }}
+        project: ${{fromJson(needs.ListProjects.outputs.PROJECTS)}}
     steps:
       - run: echo "${{ matrix.project }}"
