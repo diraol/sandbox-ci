@@ -27,9 +27,10 @@ jobs:
           | sort \
           | xargs -n1 basename \
           | jq -R -s -c 'split("\n")[:-1]')"
+          VALOR="valor fixo"
+            echo "FIXO=${VALOR}" >> "${GITHUB_OUTPUT}"
             echo "PROJECTS=${LIST}" >> "${GITHUB_OUTPUT}"
-            echo "FIXO='valor fixo'" >> "${GITHUB_OUTPUT}"
-      - run:
+      - run: |
           echo "${{steps.set-projects.outputs.FIXO}}"
           echo "${{steps.set-projects.outputs.PROJECTS}}"
 
@@ -40,7 +41,7 @@ jobs:
       FIXO: ${{needs.ListProjects.outputs.FIXO}}
     steps:
       - uses: actions/checkout@v4
-      - run:
+      - run: |
           echo "${{ env.FIXO }}"
           echo "${{ env.PROJECTS }}"
 
