@@ -1,0 +1,53 @@
+---
+name: TESTE 2024 04 28 Build Matrix
+
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: ./src
+
+jobs:
+  list-projects:
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.set-projects.outputs.projects }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set-projects
+        run: |
+          LIST="$(find . -mindepth 1 -maxdepth 1 -type d \
+          | sort \
+          | xargs -n1 basename \
+          | jq -R -s -c 'split("\n")[:-1]')"
+          echo "projects=${LIST}" >> "${GITHUB_OUTPUT}"
+      - run:
+          echo "${{ steps.set-projects.outputs.projects }}"
+
+  teste-A:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run:
+          echo "${{ needs.list-projects.outputs.projects }}"
+
+  teste-B:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run:
+          echo "${{ fromJson(needs.list-projects.outputs.projects) }}"
+
+  build-with-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.list-projects.outputs.projects) }}
+    steps:
+      - run: echo "${{ matrix.project }}"
