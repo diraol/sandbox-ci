@@ -14,49 +14,49 @@ defaults:
     working-directory: ./src
 
 jobs:
-  ListProjects:
+  jobA:
     runs-on: ubuntu-latest
     outputs:
-      PROJECTS: ${{steps.set-projects.outputs.PROJECTS}}
-      FIXO: ${{steps.valor-fixo.outputs.FIXO}}
+      valueA: ${{steps.stepA.outputs.valueA}}
+      valueB: ${{steps.stepB.outputs.valueB}}
     steps:
       - uses: actions/checkout@v4
-      - id: set-projects
+      - id: stepA
         run: |
-          LIST="$(find . -mindepth 1 -maxdepth 1 -type d \
+          valueA="first value"
+          echo "valueA=${valueA}" >> "${GITHUB_OUTPUT}"
+          echo "${valueA}"
+      - id: stepB
+        run: |
+          valueB="$(find . -mindepth 1 -maxdepth 1 -type d \
           | sort \
           | xargs -n1 basename \
           | jq -R -s -c 'split("\n")[:-1]')"
-          echo "PROJECTS=${LIST}" >> "${GITHUB_OUTPUT}"
-          echo "${LIST}"
-      - id: valor-fixo
-        run: |
-          VALOR="valor fixo"
-          echo "FIXO=${VALOR}" >> "${GITHUB_OUTPUT}"
-          echo "${VALOR}"
+          echo "valueB=${valueB}" >> "${GITHUB_OUTPUT}"
+          echo "${valueB}"
       - run: |
-          echo "${{steps.valor-fixo.outputs.FIXO}}"
-          echo "${{steps.set-projects.outputs.PROJECTS}}"
+          echo "${{steps.stepA.outputs.valueA}}"
+          echo "${{steps.stepB.outputs.valueB}}"
 
-  teste-A:
+  jobB:
     runs-on: ubuntu-latest
     env:
-      PROJECTS: ${{needs.ListProjects.outputs.PROJECTS}}
-      FIXO: ${{needs.ListProjects.outputs.FIXO}}
+      valueA: ${{needs.jobA.outputs.valueA}}
+      valueB: ${{needs.jobA.outputs.valueB}}
     steps:
       - uses: actions/checkout@v4
       - run: |
-          echo "${{ env.FIXO }}"
-          echo "${{ env.PROJECTS }}"
+          echo "${{ env.valueA }}"
+          echo "${{ env.valueB }}"
 
-  teste-B:
+  jobC:
     runs-on: ubuntu-latest
     env:
-      PROJECTS: ${{needs.ListProjects.outputs.PROJECTS}}
+      valueB: ${{needs.jobA.outputs.valueB}}
     steps:
       - uses: actions/checkout@v4
       - run:
-          echo "${env.PROJECTS}" | jq -r '.[]'
+          echo "${env.valueB}" | jq -r '.[]'
 
   build-with-matrix:
     runs-on: ubuntu-latest
