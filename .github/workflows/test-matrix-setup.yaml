@@ -1,0 +1,34 @@
+---
+name: Teste Matrix Multiple Setup
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+
+jobs:
+  build-with-matrix:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        projeto: ["a", "b", "c", "d", "e"]
+
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/src/dir-${{ matrix.projeto }}
+
+    env:
+      NUGET_PACKAGES: ${{ github.workspace }}/src/dir-${{ matrix.projeto }}/.nuget/packages
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+            cache: true
+            cache-dependency-path: 'teste.csproj'
+            dotnet-version: '8.0.x'
+      - run: cat "settings.conf"
