@@ -35,4 +35,5 @@ jobs:
       matrix:
         project: ${{fromJson(needs.listProjects.outputs.projects)}}
     steps:
-      - run: echo "${{ matrix.project }}"
+      - uses: actions/checkout@v4
+      - run: cat "${{ matrix.project }}/settings.conf"
