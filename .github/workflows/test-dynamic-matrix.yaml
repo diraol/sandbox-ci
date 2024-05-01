@@ -14,57 +14,25 @@ defaults:
     working-directory: ./src
 
 jobs:
-  jobA:
+  listProjects:
     runs-on: ubuntu-latest
     outputs:
-      valueA: ${{ steps.stepA.outputs.valueA }}
-      valueB: ${{ steps.stepB.outputs.valueB }}
+      projects: ${{ steps.generateList.outputs.projects }}
     steps:
       - uses: actions/checkout@v4
-      - id: stepA
-        run: |
-          valueA="first value"
-          echo "valueA=${valueA}" >> "$GITHUB_OUTPUT"
-          echo "${valueA}"
-      - id: stepB
+      - id: generateList
         run: |
           valueB="$(find . -mindepth 1 -maxdepth 1 -type d \
           | sort \
           | xargs -n1 basename \
           | jq -R -s -c 'split("\n")[:-1]')"
-          echo "valueB=${valueB}" >> "$GITHUB_OUTPUT"
-          echo "${valueB}"
-      - run: |
-          echo "${{ steps.stepA.outputs.valueA }}"
-          echo "${{ steps.stepB.outputs.valueB }}"
-
-  jobB:
-    runs-on: ubuntu-latest
-    needs: jobA
-    env:
-      valueA: ${{ needs.jobA.outputs.valueA }}
-      valueB: ${{ needs.jobA.outputs.valueB }}
-    steps:
-      - uses: actions/checkout@v4
-      - run: |
-          echo "${{ env.valueA }}"
-          echo "${{ env.valueB }}"
-
-  jobC:
-    runs-on: ubuntu-latest
-    needs: jobA
-    env:
-      valueB: ${{needs.jobA.outputs.valueB}}
-    steps:
-      - uses: actions/checkout@v4
-      - run:
-          echo "${{env.valueB}}" | jq -r '.[]'
+          echo "projects=${valueB}" >> "$GITHUB_OUTPUT"
 
   build-with-matrix:
     runs-on: ubuntu-latest
-    needs: jobA
+    needs: listProjects
     strategy:
       matrix:
-        project: ${{fromJson(needs.jobA.outputs.valueB)}}
+        project: ${{fromJson(needs.listProjects.outputs.projects)}}
     steps:
       - run: echo "${{ matrix.project }}"
