@@ -58,12 +58,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run:
-          echo "${env.valueB}" | jq -r '.[]'
+          echo "${{env.valueB}}" | jq -r '.[]'
 
   build-with-matrix:
     runs-on: ubuntu-latest
+    needs: jobA
     strategy:
       matrix:
-        project: ${{fromJson(needs.ListProjects.outputs.PROJECTS)}}
+        project: ${{fromJson(needs.jobA.outputs.valueB)}}
     steps:
       - run: echo "${{ matrix.project }}"
